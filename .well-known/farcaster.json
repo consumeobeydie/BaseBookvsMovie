@@ -1,0 +1,26 @@
+{
+  "accountAssociation": {
+    "header": "",
+    "payload": "",
+    "signature": ""
+  },
+  "frame": {
+    "version": "1",
+    "name": "BaseBookvsMovie",
+    "subtitle": "Book vs Film voting on Base",
+    "description": "Vote for your favorite book or film adaptation and earn 100 CSM tokens",
+    "iconUrl": "https://basebookvsmovie.vercel.app/icon.png",
+    "homeUrl": "https://basebookvsmovie.vercel.app",
+    "imageUrl": "https://basebookvsmovie.vercel.app/preview.png",
+    "splashImageUrl": "https://basebookvsmovie.vercel.app/icon.png",
+    "splashBackgroundColor": "#0a0a0f",
+    "primaryCategory": "social",
+    "tags": ["voting", "books", "movies", "base", "csm"],
+    "tagline": "Book or Film? You decide!",
+    "heroImageUrl": "https://basebookvsmovie.vercel.app/preview.png",
+    "screenshotUrls": ["https://basebookvsmovie.vercel.app/preview.png"],
+    "ogTitle": "BaseBookvsMovie",
+    "ogDescription": "Vote for your favorite book or film adaptation and earn CSM tokens",
+    "ogImageUrl": "https://basebookvsmovie.vercel.app/preview.png"
+  }
+}
