@@ -31,15 +31,38 @@ const csmBalance = $('csm-balance');
 const statusEl = $('status');
 const titlesContainer = $('titles-container');
 
-let provider, signer, account, contract;
+let provider, signer, account, contract, ethProvider;
 
 function setStatus(msg, type = '') {
   statusEl.textContent = msg;
   statusEl.className = `status${type ? ' ' + type : ''}`;
+  setTimeout(() => {
+    if (statusEl.textContent === msg) {
+      statusEl.textContent = '';
+      statusEl.className = 'status';
+    }
+  }, 5000);
 }
 
 function shortAddress(addr) {
   return addr.slice(0, 6) + '…' + addr.slice(-4);
+}
+
+async function getProvider() {
+  // Try Farcaster SDK first
+  try {
+    const { sdk } = await import('https://esm.sh/@farcaster/miniapp-sdk@0.2.3');
+    sdk.actions.ready().catch(() => {});
+    const fp = await Promise.race([
+      sdk.wallet.getEthereumProvider(),
+      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 3000))
+    ]);
+    if (fp && typeof fp.request === 'function') return fp;
+  } catch {}
+
+  // Fallback to MetaMask
+  if (window.ethereum) return window.ethereum;
+  throw new Error('No wallet found. Install MetaMask or open in Base App.');
 }
 
 async function connectWallet() {
@@ -48,26 +71,27 @@ async function connectWallet() {
   setStatus('Connecting…');
 
   try {
-    if (!window.ethereum) throw new Error('No wallet found. Install MetaMask.');
+    ethProvider = await getProvider();
 
     let accounts = [];
-    try { accounts = await window.ethereum.request({ method: 'eth_accounts' }); } catch {}
+    try { accounts = await ethProvider.request({ method: 'eth_accounts' }); } catch {}
     if (!accounts || accounts.length === 0) {
-      accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      accounts = await ethProvider.request({ method: 'eth_requestAccounts' });
     }
     if (!accounts || accounts.length === 0) throw new Error('No accounts found.');
 
+    // Switch to Base
     try {
-      const chainHex = await window.ethereum.request({ method: 'eth_chainId' });
+      const chainHex = await ethProvider.request({ method: 'eth_chainId' });
       if (parseInt(chainHex, 16) !== CONFIG.chainId) {
         try {
-          await window.ethereum.request({
+          await ethProvider.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: '0x' + CONFIG.chainId.toString(16) }]
           });
         } catch (e) {
           if (e.code === 4902) {
-            await window.ethereum.request({
+            await ethProvider.request({
               method: 'wallet_addEthereumChain',
               params: [{
                 chainId: '0x' + CONFIG.chainId.toString(16),
@@ -82,7 +106,7 @@ async function connectWallet() {
       }
     } catch {}
 
-    provider = new BrowserProvider(window.ethereum);
+    provider = new BrowserProvider(ethProvider);
     signer = await provider.getSigner(accounts[0]);
     account = accounts[0];
     contract = new Contract(CONFIG.contractAddress, CONTRACT_ABI, signer);
@@ -112,27 +136,39 @@ async function refreshBalance() {
   } catch {}
 }
 
-async function renderTitles() {
-  titlesContainer.innerHTML = '';
+async function loadVoteData() {
+  let allVotes = { books: Array(20).fill(0n), films: Array(20).fill(0n) };
+  let canVoteList = Array(20).fill(true);
 
-  let allVotes;
   try {
-    const [booksArr, filmsArr] = await contract.getAllVotes();
-    allVotes = { books: booksArr, films: filmsArr };
-  } catch {
-    allVotes = { books: Array(20).fill(0), films: Array(20).fill(0) };
-  }
+    const result = await contract.getAllVotes();
+    allVotes = { books: result[0], films: result[1] };
+  } catch {}
 
-  const canVoteList = await Promise.all(
-    TITLES.map((_, i) => contract.canVote(i, account).catch(() => true))
-  );
+  try {
+    canVoteList = await Promise.all(
+      TITLES.map((_, i) => contract.canVote(i, account).catch(() => true))
+    );
+  } catch {}
+
+  return { allVotes, canVoteList };
+}
+
+async function renderTitles() {
+  if (!contract || !account) return;
+  
+  setStatus('Loading votes…');
+  
+  const { allVotes, canVoteList } = await loadVoteData();
+  
+  titlesContainer.innerHTML = '';
 
   TITLES.forEach((title, i) => {
     const books = Number(allVotes.books[i]);
     const films = Number(allVotes.films[i]);
     const total = books + films;
     const bookPct = total > 0 ? Math.round((books / total) * 100) : 50;
-    const filmPct = total > 0 ? Math.round((films / total) * 100) : 50;
+    const filmPct = 100 - bookPct;
     const canVoteNow = canVoteList[i];
 
     const card = document.createElement('div');
@@ -153,33 +189,59 @@ async function renderTitles() {
       </div>
       ${!canVoteNow ? '<div class="voted-badge">✓ Voted today — come back tomorrow</div>' : ''}
     `;
+
+    card.querySelectorAll('.vote-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const titleId = parseInt(btn.dataset.id);
+        const isBook = btn.dataset.isbook === 'true';
+        void submitVote(titleId, isBook, card);
+      });
+    });
+
     titlesContainer.appendChild(card);
   });
 
-  titlesContainer.querySelectorAll('.vote-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const titleId = parseInt(btn.dataset.id);
-      const isBook = btn.dataset.isbook === 'true';
-      void submitVote(titleId, isBook);
-    });
-  });
+  setStatus('');
 }
 
-async function submitVote(titleId, isBook) {
+async function submitVote(titleId, isBook, card) {
   if (!contract || !account) return;
-  const btns = titlesContainer.querySelectorAll('.vote-btn');
+
+  const btns = card.querySelectorAll('.vote-btn');
   btns.forEach(b => b.disabled = true);
   setStatus('Confirm the transaction in your wallet…');
+
   try {
     const tx = await contract.vote(titleId, isBook);
-    setStatus('Transaction submitted. Waiting for confirmation…');
+    setStatus('Waiting for confirmation…');
     await tx.wait();
     setStatus('Successfully voted! +100 CSM earned 🎉', 'success');
+    
+    // Update only this card
+    try {
+      const [books, films] = await contract.getVotes(titleId);
+      const booksNum = Number(books);
+      const filmsNum = Number(films);
+      const total = booksNum + filmsNum;
+      const bookPct = total > 0 ? Math.round((booksNum / total) * 100) : 50;
+      const filmPct = 100 - bookPct;
+
+      card.querySelector('.stat:first-child').innerHTML = `📚 <span>${bookPct}%</span>${booksNum} votes`;
+      card.querySelector('.stat:last-child').innerHTML = `🎬 <span>${filmPct}%</span>${filmsNum} votes`;
+      btns.forEach(b => b.disabled = true);
+      
+      const votedBadge = document.createElement('div');
+      votedBadge.className = 'voted-badge';
+      votedBadge.textContent = '✓ Voted today — come back tomorrow';
+      card.appendChild(votedBadge);
+    } catch {}
+
     await refreshBalance();
-    await renderTitles();
+
   } catch (err) {
-    setStatus(err.reason || err.message || 'Vote failed.', 'error');
-    await renderTitles();
+    const msg = err.reason || err.message || 'Vote failed.';
+    setStatus(msg, 'error');
+    btns.forEach(b => b.disabled = false);
   }
 }
 
