@@ -11,7 +11,7 @@
     "description": "Vote for your favorite book or film adaptation and earn 100 CSM tokens",
     "iconUrl": "https://base-bookvs-movie.vercel.app/icon.png",
     "homeUrl": "https://basebookvsmovie.vercel.app",
-    "imageUrl": "https://basebookvsmovie.vercel.app/preview.png",
+    "imageUrl": "https://base-bookvs-movie.vercel.app/preview.png",
     "splashImageUrl": "https://basebookvsmovie.vercel.app/icon.png",
     "splashBackgroundColor": "#0a0a0f",
     "primaryCategory": "social",
