@@ -81,19 +81,20 @@ function TitleCard({
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const handleVote = (isBook: boolean) => {
-    const data = encodeFunctionData({
-      abi: ABI,
-      functionName: "vote",
-      args: [BigInt(titleId), isBook],
-    });
-    const dataWithBuilder = (data + BUILDER_CODE) as `0x${string}`;
-    sendTransaction({
-      to: CONTRACT_ADDRESS,
-      data: dataWithBuilder,
-      chainId: base.id,
-    });
-  };
-
+  const data = encodeFunctionData({
+    abi: ABI,
+    functionName: "vote",
+    args: [BigInt(titleId), isBook],
+  });
+  // Append builder code after the encoded data
+  const dataWithBuilder = `${data}${BUILDER_CODE}` as `0x${string}`;
+  console.log('TX data:', dataWithBuilder);
+  sendTransaction({
+    to: CONTRACT_ADDRESS,
+    data: dataWithBuilder,
+    chainId: base.id,
+  });
+};
   const booksNum = Number(books);
   const filmsNum = Number(films);
   const total = booksNum + filmsNum;
