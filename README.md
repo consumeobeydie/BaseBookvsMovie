@@ -37,3 +37,6 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Latest Update
 Next.js rewrite with wagmi and Farcaster SDK support.
+
+## Builder Code
+Builder Code is appended to all vote transactions for Base ecosystem attribution.
