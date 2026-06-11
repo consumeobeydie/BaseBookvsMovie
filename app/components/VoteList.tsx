@@ -1,23 +1,13 @@
 "use client";
 
 import { useReadContract, useWaitForTransactionReceipt, useSendTransaction } from "wagmi";
-import { encodeFunctionData } from "viem";
 import { base } from "wagmi/chains";
 
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
 const BUILDER_CODE = "62635f3064306f376a76340b0080218021802180218021802180218021";
+const VOTE_SELECTOR = "c9d27afe";
 
-const ABI = [
-  {
-    name: "vote",
-    type: "function",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "titleId", type: "uint256" },
-      { name: "isBook", type: "bool" },
-    ],
-    outputs: [],
-  },
+const READ_ABI = [
   {
     name: "canVote",
     type: "function",
@@ -56,6 +46,12 @@ const TITLES = [
   "All Quiet on the Western Front", "Forrest Gump", "The Handmaid's Tale"
 ];
 
+function buildVoteData(titleId: number, isBook: boolean): `0x${string}` {
+  const titleIdHex = titleId.toString(16).padStart(64, "0");
+  const isBookHex = (isBook ? 1 : 0).toString(16).padStart(64, "0");
+  return `0x${VOTE_SELECTOR}${titleIdHex}${isBookHex}${BUILDER_CODE}` as `0x${string}`;
+}
+
 function TitleCard({
   titleId,
   title,
@@ -71,7 +67,7 @@ function TitleCard({
 }) {
   const { data: canVote } = useReadContract({
     address: CONTRACT_ADDRESS,
-    abi: ABI,
+    abi: READ_ABI,
     functionName: "canVote",
     args: [BigInt(titleId), address as `0x${string}`],
     chainId: base.id,
@@ -81,20 +77,14 @@ function TitleCard({
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const handleVote = (isBook: boolean) => {
-  const data = encodeFunctionData({
-    abi: ABI,
-    functionName: "vote",
-    args: [BigInt(titleId), isBook],
-  });
-  // Append builder code after the encoded data
-  const dataWithBuilder = `${data}${BUILDER_CODE}` as `0x${string}`;
-  console.log('TX data:', dataWithBuilder);
-  sendTransaction({
-    to: CONTRACT_ADDRESS,
-    data: dataWithBuilder,
-    chainId: base.id,
-  });
-};
+    const data = buildVoteData(titleId, isBook);
+    sendTransaction({
+      to: CONTRACT_ADDRESS,
+      data,
+      chainId: base.id,
+    });
+  };
+
   const booksNum = Number(books);
   const filmsNum = Number(films);
   const total = booksNum + filmsNum;
@@ -111,14 +101,14 @@ function TitleCard({
           <button
             disabled={isPending || isConfirming}
             onClick={() => handleVote(true)}
-            className="bg-[#1a3a5c] text-[#4fc3f7] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
+            className="bg-[#1a3a5c] text-[#4fc3f7] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50 cursor-pointer"
           >
             📚 Book {!isPending && !isConfirming ? "(+100 CSM)" : "..."}
           </button>
           <button
             disabled={isPending || isConfirming}
             onClick={() => handleVote(false)}
-            className="bg-[#3a1a5c] text-[#ce93d8] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
+            className="bg-[#3a1a5c] text-[#ce93d8] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50 cursor-pointer"
           >
             🎬 Film {!isPending && !isConfirming ? "(+100 CSM)" : "..."}
           </button>
@@ -144,14 +134,14 @@ function TitleCard({
 export function VoteList({ address }: { address: string }) {
   const { data: allVotes } = useReadContract({
     address: CONTRACT_ADDRESS,
-    abi: ABI,
+    abi: READ_ABI,
     functionName: "getAllVotes",
     chainId: base.id,
   });
 
   const { data: balance } = useReadContract({
     address: CONTRACT_ADDRESS,
-    abi: ABI,
+    abi: READ_ABI,
     functionName: "balanceOf",
     args: [address as `0x${string}`],
     chainId: base.id,
