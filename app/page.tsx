@@ -19,10 +19,6 @@ export default function Home() {
     init();
   }, []);
 
-  const walletConnectors = connectors.filter(c => 
-    ['metaMask', 'coinbaseWalletSDK', 'injected'].includes(c.id)
-  );
-
   return (
     <main className="max-w-md mx-auto px-4 py-6">
       <header className="text-center mb-6">
@@ -46,23 +42,17 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {walletConnectors.map((connector) => (
+              {connectors.map((connector) => (
                 <button
                   key={connector.id}
                   onClick={() => connect({ connector })}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
                 >
-                  {connector.id === 'injected' ? 'Connect MetaMask' : `Connect ${connector.name}`}
+                  {connector.id === 'injected' ? 'Connect MetaMask' : 
+                   connector.id === 'farcasterFrame' ? 'Connect Farcaster Wallet' :
+                   `Connect ${connector.name}`}
                 </button>
               ))}
-              {walletConnectors.length === 0 && (
-                <button
-                  onClick={() => connect({ connector: connectors[0] })}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
-                >
-                  Connect Wallet
-                </button>
-              )}
             </div>
           )}
         </div>
