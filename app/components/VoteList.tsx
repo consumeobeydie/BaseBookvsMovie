@@ -1,10 +1,9 @@
 "use client";
 
 import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { useState, useEffect } from "react";
 import { base } from "wagmi/chains";
 
-const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as const;
+const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
 
 const ABI = [
   {
@@ -55,20 +54,20 @@ const TITLES = [
   "All Quiet on the Western Front", "Forrest Gump", "The Handmaid's Tale"
 ];
 
-function TitleCard({ 
-  titleId, 
-  title, 
+function TitleCard({
+  titleId,
+  title,
   address,
   books,
   films,
-}: { 
-  titleId: number; 
-  title: string; 
+}: {
+  titleId: number;
+  title: string;
   address: string;
   books: bigint;
   films: bigint;
 }) {
-  const { data: canVote } = useReadContract({
+  const { data: canVote, refetch } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: "canVote",
@@ -84,13 +83,12 @@ function TitleCard({
   const total = booksNum + filmsNum;
   const bookPct = total > 0 ? Math.round((booksNum / total) * 100) : 50;
   const filmPct = 100 - bookPct;
-
-  const voted = isSuccess || !canVote;
+  const voted = isSuccess || canVote === false;
 
   return (
     <div className="bg-[#12121f] border border-[#1e1e2e] rounded-xl p-4 mb-3">
       <p className="font-semibold text-sm mb-3">{title}</p>
-      
+
       {!voted ? (
         <div className="grid grid-cols-2 gap-2 mb-3">
           <button
@@ -104,7 +102,7 @@ function TitleCard({
             })}
             className="bg-[#1a3a5c] text-[#4fc3f7] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
           >
-            📚 Book (+100 CSM)
+            📚 Book {!isPending && !isConfirming ? "(+100 CSM)" : "..."}
           </button>
           <button
             disabled={isPending || isConfirming}
@@ -117,12 +115,12 @@ function TitleCard({
             })}
             className="bg-[#3a1a5c] text-[#ce93d8] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
           >
-            🎬 Film (+100 CSM)
+            🎬 Film {!isPending && !isConfirming ? "(+100 CSM)" : "..."}
           </button>
         </div>
       ) : (
         <p className="text-xs text-gray-500 mb-3">
-          {isSuccess ? "✓ Vote confirmed!" : "✓ Voted today — come back tomorrow"}
+          {isSuccess ? "✅ Vote confirmed! +100 CSM earned" : "✓ Voted today — come back tomorrow"}
         </p>
       )}
 
@@ -154,8 +152,9 @@ export function VoteList({ address }: { address: string }) {
     chainId: base.id,
   });
 
-  const books = allVotes?.[0] ?? Array(20).fill(0n);
-  const films = allVotes?.[1] ?? Array(20).fill(0n);
+  const defaultArr = Array(20).fill(BigInt(0));
+  const books = allVotes ? [...allVotes[0]] : defaultArr;
+  const films = allVotes ? [...allVotes[1]] : defaultArr;
   const csmBalance = balance ? Number(balance) / 1e18 : 0;
 
   return (
@@ -173,8 +172,8 @@ export function VoteList({ address }: { address: string }) {
           titleId={i}
           title={title}
           address={address}
-          books={books[i] as bigint}
-          films={films[i] as bigint}
+          books={books[i] ?? BigInt(0)}
+          films={films[i] ?? BigInt(0)}
         />
       ))}
     </div>
