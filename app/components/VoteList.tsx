@@ -1,9 +1,11 @@
 "use client";
 
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useReadContract, useWaitForTransactionReceipt, useSendTransaction } from "wagmi";
+import { encodeFunctionData } from "viem";
 import { base } from "wagmi/chains";
 
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
+const BUILDER_CODE = "62635f3064306f376a76340b0080218021802180218021802180218021";
 
 const ABI = [
   {
@@ -67,7 +69,7 @@ function TitleCard({
   books: bigint;
   films: bigint;
 }) {
-  const { data: canVote, refetch } = useReadContract({
+  const { data: canVote } = useReadContract({
     address: CONTRACT_ADDRESS,
     abi: ABI,
     functionName: "canVote",
@@ -75,8 +77,22 @@ function TitleCard({
     chainId: base.id,
   });
 
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const { sendTransaction, data: hash, isPending } = useSendTransaction();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+
+  const handleVote = (isBook: boolean) => {
+    const data = encodeFunctionData({
+      abi: ABI,
+      functionName: "vote",
+      args: [BigInt(titleId), isBook],
+    });
+    const dataWithBuilder = (data + BUILDER_CODE) as `0x${string}`;
+    sendTransaction({
+      to: CONTRACT_ADDRESS,
+      data: dataWithBuilder,
+      chainId: base.id,
+    });
+  };
 
   const booksNum = Number(books);
   const filmsNum = Number(films);
@@ -93,26 +109,14 @@ function TitleCard({
         <div className="grid grid-cols-2 gap-2 mb-3">
           <button
             disabled={isPending || isConfirming}
-            onClick={() => writeContract({
-              address: CONTRACT_ADDRESS,
-              abi: ABI,
-              functionName: "vote",
-              args: [BigInt(titleId), true],
-              chainId: base.id,
-            })}
+            onClick={() => handleVote(true)}
             className="bg-[#1a3a5c] text-[#4fc3f7] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
           >
             📚 Book {!isPending && !isConfirming ? "(+100 CSM)" : "..."}
           </button>
           <button
             disabled={isPending || isConfirming}
-            onClick={() => writeContract({
-              address: CONTRACT_ADDRESS,
-              abi: ABI,
-              functionName: "vote",
-              args: [BigInt(titleId), false],
-              chainId: base.id,
-            })}
+            onClick={() => handleVote(false)}
             className="bg-[#3a1a5c] text-[#ce93d8] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50"
           >
             🎬 Film {!isPending && !isConfirming ? "(+100 CSM)" : "..."}
