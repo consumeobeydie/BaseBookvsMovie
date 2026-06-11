@@ -11,13 +11,18 @@ export default function Home() {
   const { disconnect } = useDisconnect();
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        await sdk.actions.ready();
-      } catch {}
-    };
-    init();
-  }, []);
+  const init = async () => {
+    try {
+      await sdk.actions.ready();
+      // Auto-connect in Farcaster
+      const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
+      if (farcasterConnector) {
+        connect({ connector: farcasterConnector });
+      }
+    } catch {}
+  };
+  init();
+}, []);
 
   return (
     <main className="max-w-md mx-auto px-4 py-6">
