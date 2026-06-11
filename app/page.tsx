@@ -11,7 +11,12 @@ export default function Home() {
   const { disconnect } = useDisconnect();
 
   useEffect(() => {
-    sdk.actions.ready().catch(() => {});
+    const init = async () => {
+      try {
+        await sdk.actions.ready();
+      } catch {}
+    };
+    init();
   }, []);
 
   const walletConnectors = connectors.filter(c => 
