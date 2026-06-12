@@ -47,7 +47,7 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {connectors.filter(c => c.id === 'metaMask' || c.name === 'Farcaster' || c.id === 'farcasterFrame').map((connector) => (
+              {connectors.map((connector) => (
                 <button
                   key={connector.id}
                   onClick={() => connect({ connector })}
