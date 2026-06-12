@@ -8,6 +8,7 @@ import { VoteList } from "./components/VoteList";
 export default function Home() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
+  console.log('Connectors:', connectors.map(c => ({id: c.id, name: c.name})));
   const { disconnect } = useDisconnect();
 
   useEffect(() => {
