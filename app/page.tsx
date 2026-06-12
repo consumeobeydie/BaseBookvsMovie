@@ -23,8 +23,6 @@ export default function Home() {
     init();
   }, []);
 
-  const desktopConnectors = connectors.filter(c => c.id === 'metaMask');
-
   return (
     <main className="max-w-md mx-auto px-4 py-6">
       <header className="text-center mb-6">
@@ -48,18 +46,17 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {desktopConnectors.map((connector) => (
+              {connectors.map((connector) => (
                 <button
                   key={connector.id}
                   onClick={() => connect({ connector })}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
                 >
-                  Connect MetaMask
+                  {connector.id === 'metaMask' ? 'Connect MetaMask' :
+                   connector.id === 'farcasterFrame' ? 'Connect Farcaster' :
+                   `Connect ${connector.name}`}
                 </button>
               ))}
-              {desktopConnectors.length === 0 && !isConnected && (
-                <p className="text-gray-500 text-sm">Opening wallet...</p>
-              )}
             </div>
           )}
         </div>
