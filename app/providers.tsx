@@ -3,7 +3,7 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { metaMask } from "wagmi/connectors";
+import { injected, metaMask } from "wagmi/connectors";
 import { farcasterFrame } from "@farcaster/miniapp-wagmi-connector";
 
 const config = createConfig({
@@ -11,6 +11,7 @@ const config = createConfig({
   connectors: [
     farcasterFrame(),
     metaMask(),
+    injected({ target: 'metaMask' }),
   ],
   transports: {
     [base.id]: http('https://base-rpc.publicnode.com'),
