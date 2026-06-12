@@ -3,14 +3,13 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { injected, metaMask } from "wagmi/connectors";
+import { injected } from "wagmi/connectors";
 import { farcasterFrame } from "@farcaster/miniapp-wagmi-connector";
 
 const config = createConfig({
   chains: [base],
   connectors: [
     farcasterFrame(),
-    metaMask(),
     injected({ target: 'metaMask' }),
   ],
   transports: {
