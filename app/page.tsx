@@ -13,7 +13,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined' && window.ethereum) { console.log('MetaMask found:', window.ethereum.isMetaMask); }
+    
     const init = async () => {
       try {
         await sdk.actions.ready();
