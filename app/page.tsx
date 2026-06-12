@@ -25,13 +25,7 @@ export default function Home() {
     init();
   }, []);
 
-  if (!mounted) return (
-    <main className="max-w-md mx-auto px-4 py-6">
-      <div className="text-center mt-20">
-        <div className="text-gray-500 text-sm">Loading...</div>
-      </div>
-    </main>
-  );
+  if (!mounted) return null;
 
   return (
     <main className="max-w-md mx-auto px-4 py-6">
