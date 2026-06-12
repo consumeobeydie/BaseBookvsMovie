@@ -1,7 +1,7 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { VoteList } from "./components/VoteList";
 
@@ -9,8 +9,10 @@ export default function Home() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const init = async () => {
       try {
         await sdk.actions.ready();
@@ -22,6 +24,8 @@ export default function Home() {
     };
     init();
   }, []);
+
+  if (!mounted) return null;
 
   return (
     <main className="max-w-md mx-auto px-4 py-6">
