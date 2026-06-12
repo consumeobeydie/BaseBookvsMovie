@@ -3,19 +3,17 @@
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { base } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { coinbaseWallet, metaMask, injected } from "wagmi/connectors";
+import { metaMask } from "wagmi/connectors";
 import { farcasterFrame } from "@farcaster/miniapp-wagmi-connector";
 
 const config = createConfig({
   chains: [base],
   connectors: [
     farcasterFrame(),
-    injected(),
-    coinbaseWallet({ appName: "BaseBookvsMovie" }),
     metaMask(),
   ],
   transports: {
-    [base.id]: http(),
+    [base.id]: http('https://base-rpc.publicnode.com'),
   },
 });
 
