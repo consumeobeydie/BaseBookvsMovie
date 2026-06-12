@@ -8,22 +8,23 @@ import { VoteList } from "./components/VoteList";
 export default function Home() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
-  console.log('Connectors:', connectors.map(c => ({id: c.id, name: c.name})));
   const { disconnect } = useDisconnect();
 
   useEffect(() => {
-  const init = async () => {
-    try {
-      await sdk.actions.ready();
-      // Auto-connect in Farcaster
-      const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
-      if (farcasterConnector) {
-        connect({ connector: farcasterConnector });
-      }
-    } catch {}
-  };
-  init();
-}, []);
+    const init = async () => {
+      try {
+        await sdk.actions.ready();
+        const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
+        if (farcasterConnector) {
+          connect({ connector: farcasterConnector });
+        }
+      } catch {}
+    };
+    init();
+  }, []);
+
+  // Only show MetaMask for desktop
+  const desktopConnectors = connectors.filter(c => c.id === 'metaMask');
 
   return (
     <main className="max-w-md mx-auto px-4 py-6">
@@ -48,17 +49,18 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {connectors.map((connector) => (
+              {desktopConnectors.map((connector) => (
                 <button
                   key={connector.id}
                   onClick={() => connect({ connector })}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
                 >
-                  {connector.id === 'injected' ? 'Connect MetaMask' : 
-                   connector.id === 'farcasterFrame' ? 'Connect Farcaster Wallet' :
-                   `Connect ${connector.name}`}
+                  Connect MetaMask
                 </button>
               ))}
+              {desktopConnectors.length === 0 && !isConnected && (
+                <p className="text-gray-500 text-sm">Opening wallet...</p>
+              )}
             </div>
           )}
         </div>
