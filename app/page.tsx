@@ -23,7 +23,6 @@ export default function Home() {
     init();
   }, []);
 
-  // Only show MetaMask for desktop
   const desktopConnectors = connectors.filter(c => c.id === 'metaMask');
 
   return (
