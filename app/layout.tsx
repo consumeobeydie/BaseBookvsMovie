@@ -19,7 +19,7 @@ export default function RootLayout({
         <meta name="base:app_id" content="6a2421d7ee0157745851b2b2" />
         <meta name="talentapp:project_verification" content="541866e0f694f987c8ea81b352383dda57767b3f5d5916923fcdb9541645a7e1e5f59f5998d9664b758b9680dea11bbb914c53464b4a3e76eb222a29b5bb2e25" />
       </head>
-      <body className="min-h-screen bg-[#0a0a0f] text-white">
+      <body className="min-h-screen bg-[#0a0a0f] text-white" style={{ height: "100dvh", overflowY: "auto" }}>
         <Providers>{children}</Providers>
       </body>
     </html>
