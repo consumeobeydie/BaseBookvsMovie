@@ -16,7 +16,7 @@ export default function Home() {
     
     const init = async () => {
       try {
-        await sdk.actions.ready();
+        await sdk.actions.ready({ disableNativeGestures: true });
         const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
         if (farcasterConnector) {
           connect({ connector: farcasterConnector });
