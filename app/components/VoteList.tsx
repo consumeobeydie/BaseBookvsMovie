@@ -74,7 +74,7 @@ function TitleCard({
     chainId: base.id,
   });
 
-  const { sendTransaction, data: hash, isPending } = useSendTransaction();
+  const { sendTransaction, data: hash, isPending } = useSendTransaction({ mutation: { onSuccess: () => { try { sdk.actions.ready({ disableNativeGestures: true }); } catch {} } } });
   const isSuccess = !!hash;
 
   const handleVote = (isBook: boolean) => {
