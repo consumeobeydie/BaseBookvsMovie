@@ -1,6 +1,7 @@
 "use client";
 
 import { useReadContract, useSendTransaction } from "wagmi";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { base } from "wagmi/chains";
 
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
@@ -74,9 +75,10 @@ function TitleCard({
   });
 
   const { sendTransaction, data: hash, isPending } = useSendTransaction();
-  const isSuccess = !!hash;`n  const isConfirming = isPending;
+  const isSuccess = !!hash;
 
   const handleVote = (isBook: boolean) => {
+    try { sdk.actions.ready({ disableNativeGestures: true }); } catch {}
     const data = buildVoteData(titleId, isBook);
     sendTransaction({
       to: CONTRACT_ADDRESS,
@@ -99,23 +101,23 @@ function TitleCard({
       {!voted ? (
         <div className="grid grid-cols-2 gap-2 mb-3">
           <button
-            disabled={isPending || isConfirming}
+            disabled={isPending}
             onClick={() => handleVote(true)}
             className="bg-[#1a3a5c] text-[#4fc3f7] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50 cursor-pointer"
           >
-            📚 Book {!isPending && !isConfirming ? "(+100 CSM)" : "..."}
+            📚 Book {!isPending ? "(+100 CSM)" : "..."}
           </button>
           <button
-            disabled={isPending || isConfirming}
+            disabled={isPending}
             onClick={() => handleVote(false)}
             className="bg-[#3a1a5c] text-[#ce93d8] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50 cursor-pointer"
           >
-            🎬 Film {!isPending && !isConfirming ? "(+100 CSM)" : "..."}
+            🎬 Film {!isPending ? "(+100 CSM)" : "..."}
           </button>
         </div>
       ) : (
         <p className="text-xs text-gray-500 mb-3">
-          {isSuccess ? "✅ Vote confirmed! +100 CSM earned" : "✓ Voted today — come back tomorrow"}
+          {isSuccess ? "✅ Vote sent! +100 CSM earned" : "✓ Voted today — come back tomorrow"}
         </p>
       )}
 
