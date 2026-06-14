@@ -1,6 +1,6 @@
 "use client";
 
-import { useReadContract, useWaitForTransactionReceipt, useSendTransaction } from "wagmi";
+import { useReadContract, useSendTransaction } from "wagmi";
 import { base } from "wagmi/chains";
 
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
@@ -74,7 +74,7 @@ function TitleCard({
   });
 
   const { sendTransaction, data: hash, isPending } = useSendTransaction();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const isSuccess = !!hash;`n  const isConfirming = isPending;
 
   const handleVote = (isBook: boolean) => {
     const data = buildVoteData(titleId, isBook);
