@@ -78,7 +78,7 @@ function TitleCard({
   const isSuccess = !!hash;
 
   const handleVote = (isBook: boolean) => {
-    try { sdk.actions.ready({ disableNativeGestures: true }); } catch {}
+
     const data = buildVoteData(titleId, isBook);
     sendTransaction({
       to: CONTRACT_ADDRESS,
