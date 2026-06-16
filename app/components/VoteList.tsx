@@ -47,7 +47,7 @@ const ABI = [
   },
 ] as const;
 
-const READ_ABI = ABI.filter(a => a.stateMutability === "view") as typeof ABI;
+
 
 const TITLES = [
   "Harry Potter Series", "The Lord of the Rings", "Dune", "Fight Club",
