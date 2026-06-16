@@ -38,7 +38,7 @@ export default function Home() {
 
   // Determine which connectors to show based on environment
   const getConnectorLabel = (id: string, name: string) => {
-    if (id === 'farcasterFrame') return 'Connect Farcaster';
+    if (id === 'farcasterFrame') return 'Connect Base / Farcaster';
     if (id === 'metaMask') return 'Connect MetaMask';
     if (name === 'Coinbase Wallet') return 'Connect Base';
     return `Connect ${name}`;
