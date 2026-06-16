@@ -10,45 +10,29 @@ export default function Home() {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const [mounted, setMounted] = useState(false);
-  const [isMiniApp, setIsMiniApp] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const init = async () => {
       try {
-        const context = await sdk.context;
-        if (context?.client?.clientFid) {
-          setIsMiniApp(true);
-          await sdk.actions.ready({ disableNativeGestures: true });
-          const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
-          if (farcasterConnector) {
-            connect({ connector: farcasterConnector });
-          }
-        } else {
-          await sdk.actions.ready({ disableNativeGestures: true }).catch(() => {});
-        }
-      } catch {
-        await sdk.actions.ready({ disableNativeGestures: true }).catch(() => {});
+        await sdk.actions.ready({ disableNativeGestures: true });
+      } catch {}
+      
+      // Try all connectors one by one
+      for (const connector of connectors) {
+        try {
+          setConnecting(true);
+          await connect({ connector });
+          break;
+        } catch {}
       }
+      setConnecting(false);
     };
     init();
-  }, []);
+  }, [connectors.length]);
 
   if (!mounted) return null;
-
-  // Determine which connectors to show based on environment
-  const getConnectorLabel = (id: string, name: string) => {
-    if (id === 'farcasterFrame') return 'Connect Base / Farcaster';
-    if (id === 'metaMask') return 'Connect MetaMask';
-    if (name === 'Coinbase Wallet') return 'Connect Base';
-    return `Connect ${name}`;
-  };
-
-  const visibleConnectors = connectors.filter(c =>
-    c.id === 'metaMask' || c.name === 'MetaMask' ||
-    c.id === 'farcasterFrame' ||
-    c.name === 'Coinbase Wallet'
-  );
 
   return (
     <main className="max-w-md mx-auto px-4 py-6" style={{ minHeight: "100vh", paddingBottom: "80px" }}>
@@ -73,15 +57,28 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {visibleConnectors.map((connector) => (
-                <button
-                  key={connector.id}
-                  onClick={() => connect({ connector })}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
-                >
-                  {getConnectorLabel(connector.id, connector.name)}
-                </button>
-              ))}
+              {connecting ? (
+                <p className="text-gray-400 text-sm">Connecting wallet...</p>
+              ) : (
+                connectors.filter(c =>
+                  c.id === 'farcasterFrame' ||
+                  c.id === 'metaMask' ||
+                  c.name === 'MetaMask' ||
+                  c.id === 'injected' ||
+                  c.name === 'Coinbase Wallet'
+                ).map((connector) => (
+                  <button
+                    key={connector.id}
+                    onClick={() => connect({ connector })}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                  >
+                    {connector.id === 'metaMask' ? 'Connect MetaMask' :
+                     connector.id === 'farcasterFrame' ? 'Connect Wallet' :
+                     connector.id === 'injected' ? 'Connect Wallet' :
+                     `Connect ${connector.name}`}
+                  </button>
+                ))
+              )}
             </div>
           )}
         </div>
