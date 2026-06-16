@@ -13,6 +13,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+    
     const init = async () => {
       try {
         await sdk.actions.ready({ disableNativeGestures: true });
@@ -23,21 +24,12 @@ export default function Home() {
       } catch {}
     };
     init();
-  }, [connectors.length]);
+  }, []);
 
   if (!mounted) return null;
 
-  const connectWallet = () => {
-    const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
-    const injectedConnector = connectors.find(c => c.id === 'injected');
-    const metaMaskConnector = connectors.find(c => c.id === 'metaMask' || c.name === 'MetaMask');
-    
-    const connector = farcasterConnector || injectedConnector || metaMaskConnector;
-    if (connector) connect({ connector });
-  };
-
   return (
-    <main className="max-w-md mx-auto px-4 py-6" style={{ minHeight: "100vh", paddingBottom: "80px" }}>
+    <main className="max-w-md mx-auto px-4 py-6">
       <header className="text-center mb-6">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent">
           📚 Book vs 🎬 Movie
@@ -58,12 +50,19 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={connectWallet}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
-            >
-              Connect Wallet
-            </button>
+            <div className="flex flex-col gap-2">
+              {connectors.map((connector) => (
+                <button
+                  key={connector.id}
+                  onClick={() => connect({ connector })}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+                >
+                  {connector.id === 'metaMask' ? 'Connect MetaMask' :
+                   connector.id === 'farcasterFrame' ? 'Connect Farcaster' :
+                   `Connect ${connector.name}`}
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </header>
