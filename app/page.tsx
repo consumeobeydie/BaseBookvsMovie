@@ -10,29 +10,31 @@ export default function Home() {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const [mounted, setMounted] = useState(false);
-  const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     const init = async () => {
       try {
         await sdk.actions.ready({ disableNativeGestures: true });
+        const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
+        if (farcasterConnector) {
+          connect({ connector: farcasterConnector });
+        }
       } catch {}
-      const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
-      if (farcasterConnector) {
-        try {
-          setConnecting(true);
-          await connect({ connector: farcasterConnector });
-        } catch {}
-        setConnecting(false);
-      }
     };
     init();
   }, [connectors.length]);
 
   if (!mounted) return null;
 
-  const injectedConnector = connectors.find(c => c.id === 'injected');
+  const connectWallet = () => {
+    const farcasterConnector = connectors.find(c => c.id === 'farcasterFrame');
+    const injectedConnector = connectors.find(c => c.id === 'injected');
+    const metaMaskConnector = connectors.find(c => c.id === 'metaMask' || c.name === 'MetaMask');
+    
+    const connector = farcasterConnector || injectedConnector || metaMaskConnector;
+    if (connector) connect({ connector });
+  };
 
   return (
     <main className="max-w-md mx-auto px-4 py-6" style={{ minHeight: "100vh", paddingBottom: "80px" }}>
@@ -56,20 +58,12 @@ export default function Home() {
               </button>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {connecting ? (
-                <p className="text-gray-400 text-sm">Connecting wallet...</p>
-              ) : injectedConnector ? (
-                <button
-                  onClick={() => connect({ connector: injectedConnector })}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
-                >
-                  Connect Wallet
-                </button>
-              ) : (
-                <p className="text-gray-400 text-sm">No wallet found</p>
-              )}
-            </div>
+            <button
+              onClick={connectWallet}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-colors"
+            >
+              Connect Wallet
+            </button>
           )}
         </div>
       </header>
