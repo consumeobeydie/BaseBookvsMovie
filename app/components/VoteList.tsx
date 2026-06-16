@@ -1,14 +1,23 @@
 "use client";
 
-import { useReadContract, useSendTransaction } from "wagmi";
-import { sdk } from "@farcaster/miniapp-sdk";
+import { useReadContract, useWriteContract } from "wagmi";
 import { base } from "wagmi/chains";
 
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
 const BUILDER_CODE = "62635f3064306f376a76340b0080218021802180218021802180218021";
 const VOTE_SELECTOR = "c9d27afe";
 
-const READ_ABI = [
+const ABI = [
+  {
+    name: "vote",
+    type: "function",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "titleId", type: "uint256" },
+      { name: "isBook", type: "bool" },
+    ],
+    outputs: [],
+  },
   {
     name: "canVote",
     type: "function",
@@ -37,6 +46,8 @@ const READ_ABI = [
     outputs: [{ name: "", type: "uint256" }],
   },
 ] as const;
+
+const READ_ABI = ABI.filter(a => a.stateMutability === "view") as typeof ABI;
 
 const TITLES = [
   "Harry Potter Series", "The Lord of the Rings", "Dune", "Fight Club",
@@ -68,21 +79,21 @@ function TitleCard({
 }) {
   const { data: canVote } = useReadContract({
     address: CONTRACT_ADDRESS,
-    abi: READ_ABI,
+    abi: ABI,
     functionName: "canVote",
     args: [BigInt(titleId), address as `0x${string}`],
     chainId: base.id,
   });
 
-  const { sendTransaction, data: hash, isPending } = useSendTransaction({ mutation: { onSuccess: () => { try { sdk.actions.ready({ disableNativeGestures: true }); } catch {} } } });
+  const { writeContract, data: hash, isPending } = useWriteContract();
   const isSuccess = !!hash;
 
   const handleVote = (isBook: boolean) => {
-
-    const data = buildVoteData(titleId, isBook);
-    sendTransaction({
-      to: CONTRACT_ADDRESS,
-      data,
+    writeContract({
+      address: CONTRACT_ADDRESS,
+      abi: ABI,
+      functionName: "vote",
+      args: [BigInt(titleId), isBook],
       chainId: base.id,
     });
   };
@@ -136,14 +147,14 @@ function TitleCard({
 export function VoteList({ address }: { address: string }) {
   const { data: allVotes } = useReadContract({
     address: CONTRACT_ADDRESS,
-    abi: READ_ABI,
+    abi: ABI,
     functionName: "getAllVotes",
     chainId: base.id,
   });
 
   const { data: balance } = useReadContract({
     address: CONTRACT_ADDRESS,
-    abi: READ_ABI,
+    abi: ABI,
     functionName: "balanceOf",
     args: [address as `0x${string}`],
     chainId: base.id,
