@@ -10,7 +10,7 @@ const config = createConfig({
   chains: [base],
   connectors: [
     farcasterFrame(),
-    injected({ target: 'metaMask' }),
+    injected(),
   ],
   transports: {
     [base.id]: http('https://base-rpc.publicnode.com'),
