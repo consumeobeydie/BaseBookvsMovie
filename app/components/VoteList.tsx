@@ -47,8 +47,6 @@ const ABI = [
   },
 ] as const;
 
-
-
 const TITLES = [
   "Harry Potter Series", "The Lord of the Rings", "Dune", "Fight Club",
   "The Shining", "Schindler's List", "No Country for Old Men", "The Godfather",
@@ -85,17 +83,21 @@ function TitleCard({
     chainId: base.id,
   });
 
-  const { writeContract, data: hash, isPending } = useWriteContract();
-  const isSuccess = !!hash;
+  const { writeContractAsync, isPending } = useWriteContract();
 
-  const handleVote = (isBook: boolean) => {
-    writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: ABI,
-      functionName: "vote",
-      args: [BigInt(titleId), isBook],
-      chainId: base.id,
-    });
+  const handleVote = async (isBook: boolean) => {
+    try {
+      await writeContractAsync({
+        address: CONTRACT_ADDRESS,
+        abi: ABI,
+        functionName: "vote",
+        args: [BigInt(titleId), isBook],
+        chainId: base.id,
+        data: buildVoteData(titleId, isBook),
+      });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const booksNum = Number(books);
@@ -103,7 +105,7 @@ function TitleCard({
   const total = booksNum + filmsNum;
   const bookPct = total > 0 ? Math.round((booksNum / total) * 100) : 50;
   const filmPct = 100 - bookPct;
-  const voted = isSuccess || canVote === false;
+  const voted = canVote === false;
 
   return (
     <div className="bg-[#12121f] border border-[#1e1e2e] rounded-xl p-4 mb-3">
@@ -128,7 +130,7 @@ function TitleCard({
         </div>
       ) : (
         <p className="text-xs text-gray-500 mb-3">
-          {isSuccess ? "✅ Vote sent! +100 CSM earned" : "✓ Voted today — come back tomorrow"}
+          ✓ Voted today — come back tomorrow
         </p>
       )}
 
