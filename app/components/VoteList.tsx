@@ -4,8 +4,7 @@ import { useReadContract, useWriteContract } from "wagmi";
 import { base } from "wagmi/chains";
 
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
-const BUILDER_CODE = "62635f3064306f376a76340b0080218021802180218021802180218021";
-const VOTE_SELECTOR = "c9d27afe";
+const BUILDER_CODE = "62635f3064306f376a76340b0080218021802180218021802180218021" as `0x${string}`;
 
 const ABI = [
   {
@@ -56,12 +55,6 @@ const TITLES = [
   "All Quiet on the Western Front", "Forrest Gump", "The Handmaid's Tale"
 ];
 
-function buildVoteData(titleId: number, isBook: boolean): `0x${string}` {
-  const titleIdHex = titleId.toString(16).padStart(64, "0");
-  const isBookHex = (isBook ? 1 : 0).toString(16).padStart(64, "0");
-  return `0x${VOTE_SELECTOR}${titleIdHex}${isBookHex}${BUILDER_CODE}` as `0x${string}`;
-}
-
 function TitleCard({
   titleId,
   title,
@@ -93,7 +86,7 @@ function TitleCard({
         functionName: "vote",
         args: [BigInt(titleId), isBook],
         chainId: base.id,
-        
+        dataSuffix: BUILDER_CODE,
       });
     } catch (e) {
       console.error(e);
