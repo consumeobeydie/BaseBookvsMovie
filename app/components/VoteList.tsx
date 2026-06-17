@@ -90,6 +90,11 @@ function TitleCard({
       });
     } catch (e) {
       console.error(e);
+    } finally {
+      try {
+        const { sdk } = await import("@farcaster/miniapp-sdk");
+        await sdk.actions.ready({ disableNativeGestures: true });
+      } catch {}
     }
   };
 
