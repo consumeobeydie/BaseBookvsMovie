@@ -93,7 +93,7 @@ function TitleCard({
         functionName: "vote",
         args: [BigInt(titleId), isBook],
         chainId: base.id,
-        data: buildVoteData(titleId, isBook),
+        
       });
     } catch (e) {
       console.error(e);
