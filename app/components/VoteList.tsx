@@ -1,10 +1,12 @@
 "use client";
 
-import { useReadContract, useWriteContract } from "wagmi";
+import { useReadContract, useWriteContract, useWalletClient } from "wagmi";
 import { base } from "wagmi/chains";
+import { wrapFetchWithPayment } from "x402-fetch";
 
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
 const BUILDER_CODE = "62635f3064306f376a76340b0080218021802180218021802180218021" as `0x${string}`;
+const X402_VOTE_TITLE_ID = 19;
 
 const ABI = [
   {
@@ -77,9 +79,21 @@ function TitleCard({
   });
 
   const { writeContractAsync, isPending } = useWriteContract();
+  const { data: walletClient } = useWalletClient();
+
+  const isPaidTitle = titleId === X402_VOTE_TITLE_ID;
 
   const handleVote = async (isBook: boolean) => {
     try {
+      if (isPaidTitle && walletClient) {
+        const fetchWithPayment = wrapFetchWithPayment(fetch, walletClient as any);
+        const payRes = await fetchWithPayment("/api/last-vote-access");
+        if (!payRes.ok) {
+          console.error("x402 payment failed");
+          return;
+        }
+      }
+
       await writeContractAsync({
         address: CONTRACT_ADDRESS,
         abi: ABI,
@@ -90,11 +104,6 @@ function TitleCard({
       });
     } catch (e) {
       console.error(e);
-    } finally {
-      try {
-        const { sdk } = await import("@farcaster/miniapp-sdk");
-        await sdk.actions.ready({ disableNativeGestures: true });
-      } catch {}
     }
   };
 
@@ -107,7 +116,9 @@ function TitleCard({
 
   return (
     <div className="bg-[#12121f] border border-[#1e1e2e] rounded-xl p-4 mb-3">
-      <p className="font-semibold text-sm mb-3">{title}</p>
+      <p className="font-semibold text-sm mb-3">
+        {title}{isPaidTitle ? " (x402)" : ""}
+      </p>
 
       {!voted ? (
         <div className="grid grid-cols-2 gap-2 mb-3">
@@ -116,28 +127,28 @@ function TitleCard({
             onClick={() => handleVote(true)}
             className="bg-[#1a3a5c] text-[#4fc3f7] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50 cursor-pointer"
           >
-            📚 Book {!isPending ? "(+100 CSM)" : "..."}
+            Book {!isPending ? (isPaidTitle ? "($0.01 USDC)" : "(+100 CSM)") : "..."}
           </button>
           <button
             disabled={isPending}
             onClick={() => handleVote(false)}
             className="bg-[#3a1a5c] text-[#ce93d8] font-semibold py-2.5 rounded-lg text-sm disabled:opacity-50 cursor-pointer"
           >
-            🎬 Film {!isPending ? "(+100 CSM)" : "..."}
+            Film {!isPending ? (isPaidTitle ? "($0.01 USDC)" : "(+100 CSM)") : "..."}
           </button>
         </div>
       ) : (
         <p className="text-xs text-gray-500 mb-3">
-          ✓ Voted today — come back tomorrow
+          Voted today, come back tomorrow
         </p>
       )}
 
       <div className="grid grid-cols-2 gap-2 text-center text-xs text-gray-500">
         <div className="bg-[#0a0a0f] rounded-lg p-2">
-          📚 <span className="text-white font-bold">{bookPct}%</span> {booksNum} votes
+          Book <span className="text-white font-bold">{bookPct}%</span> {booksNum} votes
         </div>
         <div className="bg-[#0a0a0f] rounded-lg p-2">
-          🎬 <span className="text-white font-bold">{filmPct}%</span> {filmsNum} votes
+          Film <span className="text-white font-bold">{filmPct}%</span> {filmsNum} votes
         </div>
       </div>
     </div>
