@@ -4,12 +4,9 @@ import { useReadContract, useWriteContract, useWalletClient } from "wagmi";
 import { base } from "wagmi/chains";
 import { wrapFetchWithPayment } from "x402-fetch";
 
-
-
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
 const BUILDER_CODE = "62635f3064306f376a76340b0080218021802180218021802180218021" as `0x${string}`;
 const X402_VOTE_TITLE_ID = 19;
-const X402_BUILDER_CODE = "bc_0d0o7jv4";
 
 const ABI = [
   {
@@ -89,10 +86,7 @@ function TitleCard({
   const handleVote = async (isBook: boolean) => {
     try {
       if (isPaidTitle && walletClient) {
-        const client = new x402Client();
-        client.register("eip155:*", new ExactEvmScheme(walletClient as any));
-        client.registerExtension(new BuilderCodeClientExtension(X402_BUILDER_CODE));
-        const fetchWithPayment = wrapFetchWithPayment(fetch, client);
+        const fetchWithPayment = wrapFetchWithPayment(fetch, walletClient as any);
         const payRes = await fetchWithPayment("/api/last-vote-access");
         if (!payRes.ok) {
           console.error("x402 payment failed");
