@@ -2,9 +2,9 @@
 
 import { useReadContract, useWriteContract, useWalletClient } from "wagmi";
 import { base } from "wagmi/chains";
-import { x402Client, wrapFetchWithPayment } from "@x402/fetch";
-import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { BuilderCodeClientExtension } from "@x402/extensions/builder-code";
+import { wrapFetchWithPayment } from "x402-fetch";
+
+
 
 const CONTRACT_ADDRESS = "0x407EacD1aAF2F46cC4079BFC4bef0c197A1FD6A8" as `0x${string}`;
 const BUILDER_CODE = "62635f3064306f376a76340b0080218021802180218021802180218021" as `0x${string}`;
