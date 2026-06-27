@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
         x402Version: 1,
         accepts: [{
           scheme: "exact",
-          network: "eip155:8453",
+          network: "base",
           maxAmountRequired: PAYMENT_AMOUNT.toString(),
           resource: `${request.nextUrl.origin}/api/last-vote-access`,
           description: "Final vote access for BaseBookvsMovie - $0.01 USDC",
@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
           payTo: PAYMENT_RECIPIENT,
           maxTimeoutSeconds: 300,
           asset: USDC_ADDRESS,
-          outputSchema: null,
           extra: { name: "BaseBookvsMovie", version: "1.0" }
         }],
         error: "Payment required"
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
     const facilitatorUrl = "https://x402.org/facilitator";
     const requirements = {
       scheme: "exact",
-      network: "eip155:8453",
+      network: "base",
       maxAmountRequired: PAYMENT_AMOUNT.toString(),
       resource: `${request.nextUrl.origin}/api/last-vote-access`,
       description: "Final vote access",
