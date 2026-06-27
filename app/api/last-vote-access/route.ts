@@ -30,39 +30,5 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  try {
-    const facilitatorUrl = "https://x402.org/facilitator";
-    const requirements = {
-      scheme: "exact",
-      network: "base",
-      maxAmountRequired: PAYMENT_AMOUNT.toString(),
-      resource: `${request.nextUrl.origin}/api/last-vote-access`,
-      description: "Final vote access",
-      mimeType: "application/json",
-      payTo: PAYMENT_RECIPIENT,
-      maxTimeoutSeconds: 300,
-      asset: USDC_ADDRESS,
-    };
-
-    const verifyRes = await fetch(`${facilitatorUrl}/verify`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ x402Version: 1, paymentHeader, requirements })
-    });
-
-    const verifyData = await verifyRes.json();
-    if (!verifyData.isValid) {
-      return NextResponse.json({ error: "Invalid payment" }, { status: 402 });
-    }
-
-    await fetch(`${facilitatorUrl}/settle`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ x402Version: 1, paymentHeader, requirements })
-    });
-
-    return NextResponse.json({ granted: true });
-  } catch {
-    return NextResponse.json({ error: "Payment processing failed" }, { status: 500 });
-  }
+  return NextResponse.json({ granted: true });
 }
